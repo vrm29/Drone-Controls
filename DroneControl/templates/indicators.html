@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='_examples_data/style.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/flightindicators.css') }}" />
+    <title>Flight Indicators jQuery Plugin Examples</title>
+    <style>
+        #altimeter, #speedometer {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        #altimeter::before, #speedometer::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: white;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <table>
+        <tr>
+            <th>Remote drone</th>
+            <th>Other Connected drone</th>
+        </tr>
+        <tr>
+            <td>
+                <div class="example-group">
+                    <span>
+                        <span id="airspeed"></span>
+                        <input id="speedRemote" placeholder="Speed" value="{{ speed }}" readonly>
+                    </span>
+                    <span>
+                        <span id="altimeter"></span>
+                        <input id="altRemote" placeholder="Altitude" value="{{ alt }}" readonly>
+                    </span>
+                </div>
+                <div class="example-group">
+                    <span>
+                        <span id="heading"></span>
+                        <input id="dirRemote" placeholder="Direction" value="{{ dir }}" readonly>
+                    </span>
+                </div>
+            </td>
+            <td>
+                <div class="example-group">
+                    <span id="airspeed1"></span>
+                    <span id="altimeter1"></span>
+                </div>
+                <div class="example-group">
+                    <span id="heading1"></span>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{{ url_for('static', filename='js/jquery.flightindicators.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        var heading = $.flightIndicator('#heading', 'heading', { heading: 150, showBox: true, imagesPath: '{{ url_for("static", filename="img/airspeed-image.jpg") }}' });
+        var airspeed = $.flightIndicator('#airspeed', 'airspeed', { showBox: true });
+        var altimeter = $.flightIndicator('#altimeter', 'altimeter');
+        var heading1 = $.flightIndicator('#heading1', 'heading', { heading: 150, showBox: true });
+        var airspeed1 = $.flightIndicator('#airspeed1', 'airspeed', { showBox: true });
+        var altimeter1 = $.flightIndicator('#altimeter1', 'altimeter');
+
+        socket.on('update_altitude', function (data) {
+            updateIndicators(data.altitude);
+        });
+
+        function updateIndicators(altitude) {
+            document.getElementById("altRemote").value = altitude;
+            altimeter.setAltitude(altitude);
+            altimeter1.setAltitude(50);  // You might want to replace this with the actual value
+        }
+
+        var increment = 0;
+        setInterval(function () {
+            airspeed.setAirSpeed(document.getElementById("speedRemote").value);
+            airspeed1.setAirSpeed(15);
+            heading.setHeading(document.getElementById("dirRemote").value);
+            heading1.setHeading(90);
+            increment++;
+        }, 50);
+    </script>
+</body>
+
+</html>
